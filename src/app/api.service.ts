@@ -202,7 +202,6 @@ export class ApiService {
     
     return new Promise((resolve, reject) => {
       contractInstance2.migrateV1tokens(function (err, data) {
-
         if (err && err != null) {
           reject(err);
         }

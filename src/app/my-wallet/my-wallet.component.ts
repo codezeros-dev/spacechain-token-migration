@@ -37,10 +37,6 @@ export class MyWalletComponent implements OnInit {
     this.contractInstance1 = await this.apiService.exportInstance1();
     this.contractInstance2 = await this.apiService.exportInstance2();
 
-    console.log('---------------------1', this.userAccount)
-    console.log('---------------------11', this.contractInstance1)
-    console.log('---------------------22', this.contractInstance2)
-
     if (this.userAccount) {
 
       await this.balanceOf1(this.userAccount, this.contractInstance1);
@@ -60,10 +56,8 @@ export class MyWalletComponent implements OnInit {
 
   async balanceOf2(walletAddress, contractInstance) {
     await this.apiService.getBalance2(walletAddress, contractInstance).then((data: any) => {
-      console.log('-----------2balance-------',data)
 
       if (data) {
-        console.log('-----------2balance-------',data)
         this.balance2 = (data).toFixed(2);
         // Math.round(data * 100) / 100
       }
@@ -81,15 +75,12 @@ export class MyWalletComponent implements OnInit {
         this.show = 'step1';
         // Math.round(data * 100) / 100
       } else if (data) {
-        console.log('------------1', data);
         this.uniqueAddress = data;
 
         await this.apiService.getBalance1(this.uniqueAddress, this.contractInstance1).then(async (data1) => {
-          console.log('------------2', data1)
           if (data1 && data1 > 0) {
 
             await this.apiService.getBalance2(this.userAccount, this.contractInstance2).then((data2) => {
-                console.log('------------3 ', data2)
               if (data2 && data2 > 0) {
               } else {
                 this.show = 'step3';
@@ -112,7 +103,6 @@ export class MyWalletComponent implements OnInit {
 
   async getHoldedBalance(uniqueAddress, contractInstance1) {
     await this.apiService.getBalance1(uniqueAddress, contractInstance1).then((data) => {
-      console.log('------------getHoldedBalance', data)
       if (data && data > 0) {
         this.show = 'step3';
       }
@@ -125,7 +115,6 @@ export class MyWalletComponent implements OnInit {
   async createUpgrader() {
     await this.apiService.createUpgrader(this.contractInstance2).then((data) => {
       if (data) {
-        console.log('------------uniqueA', data);
         this.uniqueAddress = data;
         this.show = 'step2';
       }
@@ -136,7 +125,6 @@ export class MyWalletComponent implements OnInit {
   //click event  2
   async sendSpcToVault() {
     await this.apiService.getBalance1(this.uniqueAddress, this.contractInstance1).then(async (data) => {
-      console.log('------------getHoldedBalance', data)
       if (data && data > 0) {
         // await this.apiService.getBalance2(this.userAccount, this.contractInstance2).then((data2) => {
 
@@ -157,7 +145,6 @@ export class MyWalletComponent implements OnInit {
 
   async transfer(uniqueAddress, balance1, contractInstance1) {
     await this.apiService.transfer(uniqueAddress, balance1, contractInstance1).then((data) => {
-      console.log('------------transfer', data)
       if (data) {
         this.show = 'step3';
       }
@@ -169,22 +156,20 @@ export class MyWalletComponent implements OnInit {
 
   //click event 3
   async migrateV1tokens() {
+    $('#please_wait').modal('show');
 
     await this.apiService.migrateV1tokens(this.contractInstance2).then((data) => {
-      console.log('------------migrateV1tokens', data)
       if (data) {
+        $('#please_wait').modal('hide');
         this.show = 'step4';
         // this.transfer(this.uniqueAddress, this.balance1, this.contractInstance1);
       }
     }).catch((er) => {
       if (er && er.code) {
-
         this.toaster.error(er.message);
-        // $('#please_wait').modal('show');
+        $('#please_wait').modal('hide');
       }
-
-      this.toaster.error()
-      console.log('--------------er')
+      this.toaster.error();
     })
 
   }
