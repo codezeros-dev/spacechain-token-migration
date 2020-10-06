@@ -1,0 +1,62 @@
+<header id="header" class="header">
+    <div class="container">
+        <nav id="nav" class="navbar">
+            <a class="navbar-brand" routerLink="/"><img src="../../../assets/images/spacelogo.png" class="logo"></a>
+            <div class="nv_light">
+                <!-- <button class="connect_btn">Connect Wallet</button> -->
+                <div class="text-center">
+                    
+                    <h3 class="text-white mb-0 mr-2 d-flex align-items-center" style="padding-right: 15px;font-size: 21px;" *ngIf="login">
+
+                        <div>{{networkName}}<div class="walletAddress d-flex"><span class="ellips">{{walletAddress}}</span>
+                                <span>{{walletAddress| slice:-4}}</span></div>
+                        </div>
+                    </h3>
+
+                    <a href="javascript:void(0);" *ngIf="!login" class="connect_btn" data-toggle="modal"
+                        data-target="#wallet_provider">Connect Wallet</a>
+
+                </div>
+
+            </div>
+        </nav>
+    </div>
+</header>
+
+<!-- Modal -->
+<div class="modal fade common_modal" id="wallet_provider" tabindex="-1" role="dialog"
+    aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header justify-content-center align-items-center">
+                <h5 class="modal-title" id="exampleModalCenterTitle">Select a wallet provider</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="wallet_prov">
+                            <div class="metamark_main">
+                                <img src="../../assets/images/metamark.png">
+                                <p>Metamask</p>
+                            </div>
+                            <a (click)="connectToMetaMask()" data-dismiss="modal"><button
+                                    class="wallet_connect_btn">Connect</button></a>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="wallet_prov">
+                            <div class="metamark_main">
+                                <img src="../../assets/images/wallet_collect.png">
+                                <p>Wallet connect</p>
+                            </div>
+                            <a href="/Mywallet"><button class="wallet_connect_btn">Connect</button></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
