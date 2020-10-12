@@ -6,22 +6,23 @@ import { ToastrService } from 'ngx-toastr';
 import { environment } from 'src/environments/environment';
 import { ActivatedRoute, Router } from '@angular/router';
 
+import WalletConnect from '@walletconnect/client';
+import QRCodeModal from "@walletconnect/qrcode-modal";
+
+import { getChainData, sanitizeHex } from "./helpers/utils";
+import { convertAmountToRawNumber } from './helpers/bignumber';
+
 declare let window: any;
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-
-
+  connector: any;
   constructor(private route: ActivatedRoute, private http: HttpClient, private toaster: ToastrService, private router: Router,) {
     const that = this;
+
     if (window.ethereum) {
       window.web3 = new Web3(window.web3.currentProvider);
-      window.ethereum.on('accountsChanged', function (networkId) {
-        if (networkId) {
-
-        }
-      })
 
       window.ethereum.autoRefreshOnNetworkChange = true;
     }
@@ -29,10 +30,6 @@ export class ApiService {
     else if (window.web3) {
       // commented for future use
 
-    }
-    // Non-dapp browsers...
-    else {
-      console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
     }
 
   }
@@ -75,11 +72,11 @@ export class ApiService {
 
 
   async exportInstance1() {
-    return await window.web3.eth.contract(environment.ABI1).at(environment.contractAddress1);
+    return await new window.web3.eth.Contract(environment.ABI1, environment.contractAddress1);
   }
 
   async exportInstance2() {
-    return await window.web3.eth.contract(environment.ABI2).at(environment.contractAddress2);
+    return await new window.web3.eth.Contract(environment.ABI2, environment.contractAddress2);
   }
 
 
@@ -94,7 +91,7 @@ export class ApiService {
           resolve([]);
         }
         if (result == undefined || result.length == 0) {
-          alert("No account found! Make sure the Ethereum client is configured properly.");
+          // alert("No account found! Make sure the Ethereum client is configured properly.");
           resolve([]);
         } else {
 
@@ -114,100 +111,120 @@ export class ApiService {
 
 
   getBalance1(userWalletAccount, contractInstance) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (!userWalletAccount) {
         console.log('Metamask/Wallet connection failed.');
         this.toaster.error('Metamask/Wallet connection failed.');
         return;
       }
-      contractInstance.balanceOf(userWalletAccount, function (err, tokenBalance) {
-        if (err && err != null) {
-          console.log('Please connect with metamask');
-          reject(err);
-        }
-        resolve(tokenBalance / environment.divideValue);
+      let temp = await contractInstance.methods.balanceOf(userWalletAccount).call({
+        from: userWalletAccount
       });
+      if (temp) {
+        resolve(temp / environment.divideValue);
+      } else {
+        console.log('Please connect with metamask');
+        reject('err');
+      }
     });
 
   }
 
   getBalance2(userWalletAccount, contractInstance) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (!userWalletAccount) {
-        console.log('Metamask/Wallet connection failed.');
         this.toaster.error('Metamask/Wallet connection failed.');
         return;
       }
-      contractInstance.balanceOf(userWalletAccount, function (err, tokenBalance) {
 
-        if (err && err != null) {
-          console.log('Please connect with metamask');
-          reject(err);
-        }
-        resolve(tokenBalance / environment.divideValue);
+      let temp = await contractInstance.methods.balanceOf(userWalletAccount).call({
+        from: userWalletAccount
       });
+      if (temp) {
+        resolve(temp / environment.divideValue);
+      } else {
+        console.log('Please connect with metamask');
+        reject('err');
+      }
+
     });
 
   }
 
 
   tokenUpgrader(userWalletAccount, contractInstance2) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       if (!userWalletAccount) {
         console.log('Metamask/Wallet connection failed.');
         this.toaster.error('Metamask/Wallet connection failed.');
         return;
       }
-      contractInstance2.tokenUpgrader(userWalletAccount, function (err, uniqueAddress) {
-
-        if (err && err != null) {
-          reject(err);
-        }
-        resolve(uniqueAddress);
+      let uniqueAddress = await contractInstance2.methods.tokenUpgrader(userWalletAccount).call({
+        from: userWalletAccount
       });
+      if (uniqueAddress) {
+        resolve(uniqueAddress);
+      } else {
+        console.log('Please connect with metamask');
+        reject('err');
+      }
+
     });
 
   }
 
 
-  createUpgrader(contractInstance2) {
-    return new Promise((resolve, reject) => {
+  createUpgrader(contractInstance2, walletAdder) {
+    return new Promise(async (resolve, reject) => {
 
-      contractInstance2.createUpgrader(function (err, uniqueAddress) {
-
-        if (err && err != null) {
-          reject(err);
-        }
+      let uniqueAddress = await contractInstance2.methods.createUpgrader().call({
+        from: walletAdder
+      });
+      if (uniqueAddress) {
         resolve(uniqueAddress);
-      });
+      } else {
+        console.log('Please connect with metamask');
+        reject('err');
+      }
     })
   }
 
 
-  transfer(uniqueAddress, balance, contractInstance1) {
-    return new Promise((resolve, reject) => {
-      balance = balance * 1e18;
-      contractInstance1.transfer(uniqueAddress, balance, function (err, data) {
+  transfer(uniqueAddress, balance, contractInstance1, walletAdder) {
+    return new Promise(async (resolve, reject) => {
+      balance = await convertAmountToRawNumber(balance);
+      console.log('--------------------------------3-',balance)
 
-        if (err && err != null) {
-          reject(err);
-        }
-        resolve(data);
+      let receipt = await contractInstance1.methods.transfer(uniqueAddress, balance).call({
+        from: walletAdder
       });
+
+      if (receipt) {
+        resolve(receipt);
+      } else {
+        console.log('Please connect with metamask');
+        reject('err');
+      }
+
     })
   }
 
 
-  migrateV1tokens(contractInstance2){
-    
-    return new Promise((resolve, reject) => {
-      contractInstance2.migrateV1tokens(function (err, data) {
-        if (err && err != null) {
-          reject(err);
-        }
-        resolve(data);
+  migrateV1tokens(contractInstance2, walletAdder) {
+
+    return new Promise(async (resolve, reject) => {
+
+      let receipt = await contractInstance2.methods.migrateV1tokens().call({
+        from: walletAdder
       });
+
+      if (receipt) {
+        resolve(receipt);
+      } else {
+        console.log('Please connect with metamask');
+        reject('err');
+      }
+
     })
   }
-
 }

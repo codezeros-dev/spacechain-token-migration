@@ -10,9 +10,9 @@ const routes: Routes = [
     component:HomeComponent
   },
   {
-    path:"Mywallet",
+    path:"Mywallet/:id",
     component:MyWalletComponent,
-    canActivate: [AuthGuard]
+    // canActivate: [AuthGuard]
   }
 ];
 

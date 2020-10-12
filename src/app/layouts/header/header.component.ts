@@ -3,8 +3,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService } from '../../api.service';
 import { ToastrService } from 'ngx-toastr';
+import { ApiWalletConnectService } from 'src/app/api-wallet-connect.service';
 
 declare let window: any;
+declare const $: any;
 
 
 @Component({
@@ -19,21 +21,39 @@ export class HeaderComponent implements OnInit {
   userAccount: any;
   walletAddress: any = '';
 
+
+  wallet: any = '';
+  id: any;
+
   constructor(
     private router: Router,
-    private route: ActivatedRoute,
+    private _route: ActivatedRoute,
     private apiService: ApiService,
+    private apiWalletService: ApiWalletConnectService,
     private toaster: ToastrService,) {
+
+    // this.id = this._route.snapshot.params['id'];
+    // if (this.id && this.id != undefined) {
+    //   let idArray = ['1', '2'];
+
+    //   if (!idArray.includes(this.id)) {
+    //     this.router.navigate(['/']);
+    //   } else {
+    //     if (this.id == 1) {
+    //       this.wallet = 'Metamask';
     this.getConnection();
+    // }
+    // else {
+    //   this.wallet = 'WalletConnect';
+    // }
+    // }
+    // }
+
+
   }
 
-  async ngOnInit(){
-      // await this.apiService.getBehaviorView().subscribe((data)=>{
-      //   if(data){
-      //     console.log('-------------------------------data',data)
-      //   //  window.location.reload();
-      //   }
-      // })
+  async ngOnInit() {
+  
   }
 
 
@@ -44,7 +64,24 @@ export class HeaderComponent implements OnInit {
       this.getNetworkName();
       this.getSelectedAddress();
     } else {
-      this.login = false;
+
+      this.apiWalletService.getBehaviorView().subscribe((data) => {
+        if (data && data != undefined) {
+
+          if (data['connected'] && data['connected'] == true) {
+            this.login = true;
+            this.networkName = data['networkName'];
+            this.walletAddress = data['walletAddress'];
+          } else {
+            $('#wallet_provider').modal('hide');
+            this.login = false;
+          }
+
+        } else {
+          this.login = false;
+        }
+      })
+
     }
 
   }
@@ -66,7 +103,7 @@ export class HeaderComponent implements OnInit {
       this.getNetworkName();
       this.getSelectedAddress();
       this.toaster.success('User Connected Successfully');
-      this.router.navigate(["/Mywallet"]);
+      this.router.navigate(["/Mywallet/1"]);
 
     }).catch((er) => {
 
@@ -76,5 +113,20 @@ export class HeaderComponent implements OnInit {
     })
   }
 
+  connectToWalletConnect() {
+    this.apiWalletService.walletConnectInit();
+
+    this.apiWalletService.getOnConnectBehaviorView().subscribe((data) => {
+      if (data && data != undefined) {
+        if (data['connected']) {
+          $('#wallet_provider').modal('hide');
+          this.router.navigate(['/Mywallet/2'])
+        } else {
+          $('#wallet_provider').modal('hide');
+
+        }
+      }
+    })
+  }
 
 }

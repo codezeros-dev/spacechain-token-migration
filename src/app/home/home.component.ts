@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService } from '../api.service';
 import { ToastrService } from 'ngx-toastr';
+import { ApiWalletConnectService } from '../api-wallet-connect.service';
 
 declare const $: any;
 
@@ -17,6 +18,7 @@ export class HomeComponent implements OnInit {
 
   constructor(
     private router: Router,
+    private apiWalletService: ApiWalletConnectService,
     private route: ActivatedRoute,
     private apiService: ApiService,
     private toaster: ToastrService,) {
@@ -26,19 +28,37 @@ export class HomeComponent implements OnInit {
   ngOnInit() {
   }
 
-
+  // TODO
   async checkConnectedWallet() {
     this.userAccount = await this.apiService.export();
 
     if (this.userAccount != undefined && this.userAccount && (this.userAccount.length)) {
       this.toaster.info('Already wallet Connected');
-      this.router.navigate(['/Mywallet'])
+      this.router.navigate(['/Mywallet/1'])
     } else {
-      $('#wallet_provider').modal({
-        backdrop: 'static',
-        keyboard: false,
-        show: true
-      });
+
+      this.apiWalletService.getBehaviorView().subscribe((data) => {
+        if (data && data != undefined) {
+          if (data['connected']) {
+          this.userAccount =  data['walletAddress']
+          this.router.navigate(['/Mywallet/2'])
+
+          }else{
+              $('#wallet_provider').modal({
+                backdrop: 'static',
+                keyboard: false,
+                show: true
+              });
+          }
+        }
+        else{
+          $('#wallet_provider').modal({
+            backdrop: 'static',
+            keyboard: false,
+            show: true
+          });
+        }
+      })
       
     }
   }
