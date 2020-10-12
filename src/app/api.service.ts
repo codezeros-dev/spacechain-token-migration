@@ -177,7 +177,7 @@ export class ApiService {
   createUpgrader(contractInstance2, walletAdder) {
     return new Promise(async (resolve, reject) => {
 
-      let uniqueAddress = await contractInstance2.methods.createUpgrader().call({
+      let uniqueAddress = await contractInstance2.methods.createUpgrader().send({
         from: walletAdder
       });
       if (uniqueAddress) {
@@ -195,7 +195,7 @@ export class ApiService {
       balance = await convertAmountToRawNumber(balance);
       console.log('--------------------------------3-',balance)
 
-      let receipt = await contractInstance1.methods.transfer(uniqueAddress, balance).call({
+      let receipt = await contractInstance1.methods.transfer(uniqueAddress, balance).send({
         from: walletAdder
       });
 
@@ -214,7 +214,7 @@ export class ApiService {
 
     return new Promise(async (resolve, reject) => {
 
-      let receipt = await contractInstance2.methods.migrateV1tokens().call({
+      let receipt = await contractInstance2.methods.migrateV1tokens().send({
         from: walletAdder
       });
 
