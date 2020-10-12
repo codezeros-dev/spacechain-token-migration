@@ -15,10 +15,7 @@ import { BehaviorSubject, Observable, throwError } from 'rxjs';
 import WalletConnectProvider from "@walletconnect/web3-provider";
 import { apiGetAccountNonce, apiGetGasPrices } from './helpers/api';
 import { convertAmountToRawNumber, convertStringToHex } from './helpers/bignumber';
-import { type } from 'os';
 
-
-declare let window: any;
 
 
 @Injectable({
@@ -36,14 +33,13 @@ export class ApiWalletConnectService {
 
 
     const provider = new WalletConnectProvider({
-      infuraId: "27e484dcd9e3efcfd25a83a78777cdf1" // Required
+      infuraId: "5918063957ef4e8bae0348d54fa14ebb" // Required
     });
 
     if (provider) {
       if (provider.wc && provider.wc['_connected']) {
         console.log('-----------conne', provider.wc['_chainId'])
         const activeChain = provider.wc['_chainId'] ? getChainData(provider.wc['_chainId']).name : null;
-
         this.setBehaviorView({
           walletAddress: provider.wc['_accounts'][0],
           networkName: activeChain,
@@ -166,6 +162,7 @@ export class ApiWalletConnectService {
 
 
   async exportInstance1(networkName) {
+    console.log('----------------------',networkName)
     let web3;
     if (networkName == 'Ropsten') {
       web3 = new Web3("https://ropsten.infura.io/v3/5918063957ef4e8bae0348d54fa14ebb");
@@ -271,49 +268,41 @@ export class ApiWalletConnectService {
   async transfer(uniqueAddress, balance, contractInstance1, walletAdder, chainId) {
 
     const from = walletAdder;
-    const to = environment.contractAddress2;
+    const to = environment.contractAddress1;
     const _nonce = await apiGetAccountNonce(walletAdder, chainId);
     const nonce = sanitizeHex(convertStringToHex(_nonce));
     const gasPrices = await apiGetGasPrices();
     const _gasPrice = gasPrices.slow.price;
     const gasPrice = sanitizeHex(convertStringToHex(convertAmountToRawNumber(_gasPrice, 9)));
-    const _gasLimit = 30000;
+    const _gasLimit = 300000;
     const gasLimit = sanitizeHex(convertStringToHex(_gasLimit));
-    // const _value = 0;
-    // const value = sanitizeHex(convertStringToHex(_value));
 
     await this.walletConnectInit();
 
     //--------------------
     balance = convertAmountToRawNumber(balance);
-    console.log('-------receipt------', balance)
 
-    let receipt = await contractInstance1.methods.transfer(uniqueAddress, balance).encodeABI();;
+    let receipt = await contractInstance1.methods.transfer(uniqueAddress, balance).encodeABI();
 
     if (receipt) {
 
       let txnObject = {
         from: from,
         to: to,
-        // gasPrice: gasPrice,
+        gasPrice: gasPrice,
         gas: gasLimit,
-        // value: "0x0",
-        // nonce: nonce,
+        nonce: nonce,
         data: await receipt
       };
-      console.log('-------receipt------', receipt)
-
 
       if (this.connector) {
         return this.connector.sendTransaction(txnObject)
           .then((result) => {
-            console.log('-------------if',result)
             // Returns transaction id (hash)
             return result;
           })
           .catch((error) => {
             // Error returned when rejected
-            console.log('-------------els', error)
             return ;
           });
       } else {
@@ -350,10 +339,10 @@ export class ApiWalletConnectService {
       let txnObject = {
         from: from,
         to: to,
-        gasPrice: gasPrice,
-        gas: gasLimit,
-        value: "0x0",
-        nonce: nonce,
+        // gasPrice: gasPrice,
+        // gas: gasLimit,
+        // value: "0x0",
+        // nonce: nonce,
         data: await receipt
       };
 
@@ -380,7 +369,8 @@ export class ApiWalletConnectService {
 
   public killSession = async () => {
       if (this.connector) {
-      this.connector.killSession();
+        this.connector.killSession();
+        this.connector = '';
     }
     this.router.navigateByUrl("/");
   };

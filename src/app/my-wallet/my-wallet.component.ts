@@ -83,6 +83,7 @@ export class MyWalletComponent implements OnInit {
             this.contractInstance1 = await this.apiWalletService.exportInstance1(data['networkName']);
             this.contractInstance2 = await this.apiWalletService.exportInstance2(data['networkName']);
 
+            this.apiWalletService.walletConnectInit();
             this.balanceOfWallet1(this.contractInstance1, data['walletAddress']);
             this.balanceOfWallet2(this.contractInstance2, data['walletAddress']);
             this.checkProcessWallet(this.userAccount, this.contractInstance1, this.contractInstance2)
