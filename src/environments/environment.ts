@@ -532,7 +532,7 @@ export const environment = {
 
   contractAddress1: '0x8069080a922834460C3A092FB2c1510224dc066b',
 
-  contractAddress2: '0x8DBD44dA07427ba0148C729Ee359354B401cdBec',
+  contractAddress2: '0x86ed939b500e121c0c5f493f399084db596dad20',
 
 
 };
