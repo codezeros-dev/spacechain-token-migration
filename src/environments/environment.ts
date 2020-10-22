@@ -526,9 +526,13 @@ export const environment = {
     }
   ],
 
-  contractAddress1: '0x9e5687B0E65a52A53C02fE101e232Ed43A25f391',
+  // contractAddress1: '0x9e5687B0E65a52A53C02fE101e232Ed43A25f391',
 
-  contractAddress2: '0xaC1A1565E11d4DBB70C4Ec7049823d9a97683561',
+  // contractAddress2: '0xaC1A1565E11d4DBB70C4Ec7049823d9a97683561',
+
+  contractAddress1: '0x8069080a922834460C3A092FB2c1510224dc066b',
+
+  contractAddress2: '0x8DBD44dA07427ba0148C729Ee359354B401cdBec',
 
 
 };
